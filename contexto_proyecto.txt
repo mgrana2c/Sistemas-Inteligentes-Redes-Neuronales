@@ -1,0 +1,9 @@
+## **Optimización de la Capacidad Predictiva de un Agente Racional para Logística E-Commerce"**.
+
+Desarrollo de un Agente Racional para la estimacion precisa del Tiempo de Entrega (ETA) y la clasificación del riesgo de incumplimiento de promesa de servicio,  utilizando el ecosistema de datos de comercio electrónico brasileño (Olist). El objetivo es minimizar el error de predicción y cuantificar la incertidumbre para mejorar la toma de decisiones proactivas en la cadena de suministro. El agente deberá mapear características del pedido, ubicación del vendedor y cliente, y variables temporales.
+
+**Componente de mapeo (percepcion —> decision)**
+
+# Contextualización del problema
+
+El problema central identificado es la incapacidad de los sistemas logísticos tradicionales, basados en reglas estáticas o promedios históricos, para adaptarse a la naturaleza no lineal y dinámica de las entregas urbanas. Los retrasos en las entregas no son meros inconvenientes operativos; son motores directos de la insatisfacción del cliente. Datos del ecosistema Olist indican que mientras una entrega a tiempo mantiene una puntuación de satisfacción alta, un retraso de apenas 1 a 5 días incrementa la probabilidad de reseñas negativas en un 4.4 veces, y retrasos mayores a 6 días disparan esta probabilidad en 8.3 veces. **1**  Por lo tanto, la capacidad de predecir con exactitud cuándo llegará un paquete permite a las empresas gestionar las expectativas del cliente y optimizar sus recursos internos.

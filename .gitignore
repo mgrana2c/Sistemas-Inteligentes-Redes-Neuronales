@@ -1,0 +1,23 @@
+# Datos procesados y modelos (archivos grandes)
+data/processed/
+models/
+outputs/
+
+# Entorno Python
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+venv/
+.venv/
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Dataset original (muy pesado para git)
+dataset/*.csv
+dataset/.complete/
+
+# Kaggle
+*.json~
+kaggle.json

@@ -1,0 +1,42 @@
+Para materializar el proyecto utilizando el dataset de Olist dentro del módulo de Redes Neuronales, se ha diseñado un plan de entrenamiento estructurado en seis fases técnicas fundamentales.
+
+### **Fase 1: Ingeniería de Características**
+
+Transformación de datos crudos:
+
+1. **Cálculo de Distancia Real**: Utilizar las coordenadas de geolocalización para calcular la distancia de Haversine entre los puntos de origen (vendedor) y destino (cliente). Esta métrica es un predictor mucho más potente que la distancia euclidiana simple.
+
+$d = 2r \arcsin\left(\sqrt{\sin^2\left(\frac{\phi_2-\phi_1}{2}\right) + \cos(\phi_1)\cos(\phi_2)\sin^2\left(\frac{\lambda_2-\lambda_1}{2}\right)}\right)$
+
+2. **Descomposición Temporal**: Extraer el mes, día de la semana y hora de la compra. Esto permite capturar efectos estacionales como el Black Friday o la saturación de los transportistas durante los fines de semana.
+
+3. **Características Físicas del Producto**: Integrar el peso y el volumen ($largo \times alto \times ancho$). Los productos pesados suelen requerir transportes especializados o tiempos de carga más largos, lo que impacta directamente en el ETA.
+
+4. **Codificación de Variables Categóricas**: Utilizar capas de "Embedding" en lugar de One-Hot Encoding para categorías con alta cardinalidad, como los estados de Brasil o las categorías de producto, permitiendo que la red aprenda representaciones vectoriales densas de estas entidades.
+
+### **Fase 2: Arquitectura de la Red Neuronal**
+
+Se propone una arquitectura de red neuronal profunda de tipo Feed-Forward con componentes específicos para datos tabulares heterogéneos:
+
+- **Capa de Entrada**: Concatenación de vectores de embedding (para categorías) y variables escaladas (para distancias, pesos y tiempos).
+- **Bloques Densos**: Mínimo 3 capas ocultas con funciones de activación ReLU (Rectified Linear Unit) para introducir no linealidad. Se sugiere una estructura piramidal invertida (e.g., 256, 128, 64 neuronas).
+- **Regularización**: Inclusión de capas de Dropout (con tasa de 0.2 a 0.3) y Batch Normalization para estabilizar el entrenamiento y prevenir el sobreajuste (overfitting), un problema común en datasets con ruido como el de e-commerce.
+- **Capa de Salida**:
+    ◦ Para la tarea de **Regresión** (días de entrega): Una neurona con activación lineal.
+    ◦ Para la tarea de **Clasificación** (retraso binario): Una neurona con activación Sigmoide.
+
+### **Fase 3: Protocolo de Entrenamiento y Optimización**
+
+- **División de Datos**: Se recomienda un esquema de 80% entrenamiento, 10% validación y 10% prueba. Es vital realizar una división cronológica (split temporal) en lugar de una aleatoria para simular condiciones reales donde el modelo predice el futuro basándose en el pasado.
+- **Funciones de Pérdida**:
+    ◦ Regresión: MAE (Mean Absolute Error) por ser menos sensible a los outliers que el MSE.
+    ◦ Clasificación: Binary Cross-Entropy.
+- **Optimizador**: Adam con una tasa de aprendizaje (learning rate) inicial de $10^{-3}$ y un decaimiento programado (scheduler) para refinar la convergencia en las etapas finales.
+- **Estrategia de Early Stopping**: Detener el entrenamiento cuando el error en el conjunto de validación deje de disminuir por un número determinado de épocas (patience), evitando que la red "memorice" el ruido del dataset.
+
+### **Fase 4: Evaluación**
+
+Métricas alineadas al negocio logístico:
+
+- **Métricas de Regresión**: RMSE (Root Mean Square Error) para penalizar grandes desviaciones y $R^2$para entender el porcentaje de varianza explicada por el modelo.
+- **Métricas de Clasificación**: Debido al desbalance de clases (pocos retrasos), la precisión (Accuracy) es engañosa. Se priorizará el F1-Score, el AUC-ROC y la matriz de confusión para entender el costo de los falsos negativos (el sistema dice que llegará a tiempo pero llega tarde).

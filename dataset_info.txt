@@ -1,0 +1,11 @@
+# Dataset
+
+**Brazilian E-Commerce Public Dataset by Olist**
+Este conjunto de datos es ideal para el modelado de agentes racionales en e-commerce. Contiene información de aproximadamente 100,000 pedidos realizados en múltiples mercados en Brasil. La estructura es relacional, organizada en 9 tablas que permiten una visión multidimensional del proceso de compra y entrega:
+
+- **olist_orders_dataset**: El núcleo que conecta el estado de la orden, timestamps de compra, aprobación, entrega al transportista y entrega final al cliente.
+- • **olist_order_items_dataset**: Contiene detalles de los productos, precios, valores de flete y fechas límite de envío por parte del vendedor.
+- **olist_products_dataset**: Atributos críticos para el transporte como peso en gramos y dimensiones (largo, alto, ancho).
+- **olist_geolocation_dataset**: Coordenadas latitud/longitud vinculadas a prefijos de códigos postales, lo que permite calcular distancias reales.
+- **olist_customers_dataset y olist_sellers_dataset**: Ubicaciones geográficas de ambos actores, esenciales para determinar la complejidad del trayecto.
+
