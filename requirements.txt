@@ -1,8 +1,26 @@
-pandas>=2.0
-numpy>=1.24
-scikit-learn>=1.3
-tensorflow>=2.13
-matplotlib>=3.7
-seaborn>=0.12
+# Entorno base (Python 3.12, Altair MF)
+# pandas>=2.0
+# numpy>=1.24
+# scikit-learn>=1.3
+# tensorflow>=2.13
+# matplotlib>=3.7
+# seaborn>=0.12
+# jupyter>=1.0
+# ipykernel>=6.0
+
+# -------------------------------------------------------
+# Entorno GPU (tf_gpu) — Python 3.9 + TF 2.10 (último con GPU nativa Windows)
+# Crear entorno:
+#   conda create -n tf_gpu python=3.9 -y
+#   conda activate tf_gpu
+#   conda install -c conda-forge cudatoolkit=11.2 cudnn=8.1 -y
+#   pip install -r requirements.txt --extra-index-url https://pypi.org/simple
+# -------------------------------------------------------
+tensorflow==2.10
+pandas>=1.5,<2.1
+numpy>=1.23,<1.25
+scikit-learn>=1.1,<1.4
+matplotlib>=3.5
+seaborn>=0.11
 jupyter>=1.0
 ipykernel>=6.0
