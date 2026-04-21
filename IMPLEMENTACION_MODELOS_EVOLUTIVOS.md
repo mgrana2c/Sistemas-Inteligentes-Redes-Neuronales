@@ -143,30 +143,76 @@ Split cronológico 80/10/10 sobre órdenes entregadas entre 2016-2018.
 
 ## 8. Resultados
 
-> *Sección pendiente de completar tras la ejecución de los notebooks 09 y 10.*
-
 ### 8.1 Features seleccionadas
 
-| | GA-REG | GA-CLF |
-|---|--------|--------|
-| Número de features | — / 15 | — / 15 |
-| Features activas | — | — |
+| Feature | GA-REG | GA-CLF |
+|---------|--------|--------|
+| `distancia_km` | ✓ | ✓ |
+| `precio_total` | ✓ | ✗ |
+| `flete_total` | ✗ | ✓ |
+| `product_weight_g` | ✓ | ✗ |
+| `volumen_cm3` | ✓ | ✗ |
+| `mes_compra` | ✓ | ✓ |
+| `dia_semana_compra` | ✗ | ✗ |
+| `hora_compra` | ✓ | ✓ |
+| `dias_estimados` | ✗ | ✓ |
+| `dias_limite_envio` | ✓ | ✓ |
+| `n_items` | ✗ | ✗ |
+| `mismo_estado` | ✗ | ✗ |
+| `categoria_producto` | ✗ | ✓ |
+| `customer_state` | ✓ | ✓ |
+| `seller_state` | ✗ | ✗ |
+| **Total** | **8 / 15** | **8 / 15** |
+
+5 features fueron seleccionadas por ambos GAs: `distancia_km`, `mes_compra`, `hora_compra`, `dias_limite_envio`, `customer_state`. Las features `dia_semana_compra`, `n_items`, `mismo_estado` y `seller_state` no fueron elegidas por ninguno.
 
 ### 8.2 Comparación de métricas vs Baseline
 
-| Modelo | Features | MAE | RMSE | R² | AUC | F1 |
-|--------|----------|-----|------|----|-----|----|
-| Baseline (15 feat.) | 15 | 2.748 | 4.028 | 0.288 | 0.667 | 0.123 |
-| GA-REG | — | — | — | — | — | — |
-| GA-CLF | — | — | — | — | — | — |
+| Modelo | Features | MAE (días) | RMSE (días) | R² | AUC | F1 |
+|--------|:--------:|:----------:|:-----------:|:--:|:---:|:--:|
+| Baseline (nb08, 15 feat.) | 15 | 2.7479 | 4.0278 | 0.2884 | 0.6674 | 0.1225 |
+| GA-REG (8 feat.) | 8 | **2.9382** | **4.1116** | **0.2585** | — | — |
+| GA-CLF (8 feat.) | 8 | — | — | — | **0.5806** | **0.1019** |
 
-### 8.3 Evolución del GA
+**Variación respecto al baseline:**
 
-*(Insertar imagen `outputs/graficas/ga_evolucion_fitness.png` tras la ejecución)*
+| Métrica | Baseline | GA | Δ |
+|---------|----------|----|---|
+| MAE | 2.7479 | 2.9382 | +6.9% ▲ (peor) |
+| R² | 0.2884 | 0.2585 | −10.4% ▼ (peor) |
+| AUC | 0.6674 | 0.5806 | −13.0% ▼ (peor) |
+| F1 | 0.1225 | 0.1019 | −16.8% ▼ (peor) |
 
-### 8.4 Mapa de features
+El GA no superó al baseline en ninguna métrica. Con 8/15 features, ambos modelos perdieron capacidad predictiva respecto a usar el conjunto completo.
 
-*(Insertar imagen `outputs/graficas/ga_features_seleccionadas.png` tras la ejecución)*
+### 8.3 Convergencia del GA y fitness proxy
+
+| GA | Gen. ejecutadas | Gen. convergencia | Mejor fitness proxy | Fitness real (test) | Brecha |
+|----|:---------------:|:-----------------:|:-------------------:|:-------------------:|:------:|
+| GA-REG | 8 (paró por patience=5) | Gen 3 | R² = **0.3883** | R² = 0.2585 | −33.4% |
+| GA-CLF | 15 (máximo) | Gen 12 | F1 = **0.2524** | F1 = 0.1019 | −59.6% |
+
+**Evolución del fitness proxy por generación:**
+
+| Gen | GA-REG (mejor R²) | GA-REG (avg) | GA-CLF (mejor F1) | GA-CLF (avg) |
+|:---:|:-----------------:|:------------:|:-----------------:|:------------:|
+| 1 | 0.3778 | 0.2332 | 0.2176 | 0.1566 |
+| 2 | 0.3805 | 0.2944 | 0.2182 | 0.1932 |
+| 3 | **0.3883** | 0.3518 | 0.2193 | 0.2028 |
+| 4 | 0.3883 | 0.3799 | 0.2222 | 0.2085 |
+| 5 | 0.3883 | 0.3646 | 0.2222 | 0.2044 |
+| 6 | 0.3883 | 0.3824 | 0.2290 | 0.2149 |
+| 7 | 0.3883 | 0.3587 | 0.2452 | 0.2194 |
+| 8 | 0.3883 | 0.3632 | 0.2478 | 0.2215 |
+| 9–11 | — | — | 0.2478 | ~0.233 |
+| 12 | — | — | **0.2524** | 0.2357 |
+| 13–15 | — | — | 0.2524 | ~0.239 |
+
+El proxy sobreestimó considerablemente el fitness real: lo que en el proxy (20% datos, 20 épocas) aparecía como un R² de 0.39 o un F1 de 0.25, en el entrenamiento completo (100% datos, 120 épocas) se tradujo en R²=0.26 y F1=0.10. Esta brecha es la causa principal de que el GA no superara al baseline.
+
+### 8.4 Gráficos
+
+Ver `outputs/comparativo_ME.png`, `outputs/features_ME.png` y `outputs/curvas_ME.png`.
 
 ---
 
