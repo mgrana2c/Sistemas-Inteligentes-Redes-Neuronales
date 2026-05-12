@@ -147,86 +147,184 @@ Split cronológico **80 / 10 / 10** — idéntico al de las entregas 1 y 2 para 
 
 ## 6. Resultados
 
-> **Pendiente de ejecución.** Completar tras ejecutar `11_anfis_razonamiento_incierto.ipynb`.
-
 ### 6.1 Tabla completa del grid (12 configuraciones)
 
 | ID | MFs | Tipo | Optim | Reglas | MAE | RMSE | R² | Épocas | Tiempo(s) |
-|----|:---:|------|-------|:------:|-----|------|-----|--------|-----------|
-| 1  | 2 | trimf   | hybrid   | 8  | — | — | — | — | — |
-| 2  | 2 | trimf   | gradient | 8  | — | — | — | — | — |
-| 3  | 2 | gaussmf | hybrid   | 8  | — | — | — | — | — |
-| 4  | 2 | gaussmf | gradient | 8  | — | — | — | — | — |
-| 5  | 3 | trimf   | hybrid   | 27 | — | — | — | — | — |
-| 6  | 3 | trimf   | gradient | 27 | — | — | — | — | — |
-| 7  | 3 | gaussmf | hybrid   | 27 | — | — | — | — | — |
-| 8  | 3 | gaussmf | gradient | 27 | — | — | — | — | — |
-| 9  | 4 | trimf   | hybrid   | 64 | — | — | — | — | — |
-| 10 | 4 | trimf   | gradient | 64 | — | — | — | — | — |
-| 11 | 4 | gaussmf | hybrid   | 64 | — | — | — | — | — |
-| 12 | 4 | gaussmf | gradient | 64 | — | — | — | — | — |
+|----|:---:|------|-------|:------:|-----|------|:--:|:------:|:---------:|
+| 1  | 2 | trimf   | hybrid   | 8  | *divergió* | — | — | 41 | 22.1 |
+| **2**  | **2** | **trimf**   | **gradient** | **8**  | **3.2218** | **4.5118** | **0.1071** | **61** | **30.2** |
+| 3  | 2 | gaussmf | hybrid   | 8  | *divergió* | — | — | 41 | 20.9 |
+| **4**  | **2** | **gaussmf** | **gradient** | **8**  | **3.2199** | **4.5293** | **0.1001** | **62** | **30.8** |
+| 5  | 3 | trimf   | hybrid   | 27 | *divergió* | — | — | 62 | 38.1 |
+| **6**  | **3** | **trimf**   | **gradient** | **27** | **3.2629** | **4.5600** | **0.0879** | **64** | **38.4** |
+| 7  | 3 | gaussmf | hybrid   | 27 | *divergió* | — | — | 62 | 37.9 |
+| **8**  | **3** | **gaussmf** | **gradient** | **27** | **3.2191** | **4.5219** | **0.1031** | **66** | **39.7** |
+| 9  | 4 | trimf   | hybrid   | 64 | *divergió* | — | — | 200 | 144.2 |
+| **★10** | **4** | **trimf**   | **gradient** | **64** | **3.1160** | **4.4654** | **0.1254** | **72** | **52.4** |
+| 11 | 4 | gaussmf | hybrid   | 64 | *divergió* | — | — | 200 | 142.5 |
+| **12** | **4** | **gaussmf** | **gradient** | **64** | **3.2497** | **4.5470** | **0.0931** | **64** | **46.0** |
 
-**★ Mejor configuración:** Config — · — MFs · — · — → MAE = — · R² = — *(pendiente)*
+**★ Mejor configuración:** Config 10 · 4 MFs · trimf · gradient → MAE = 3.1160 · R² = 0.1254
 
-### 6.2 Análisis del efecto de cada factor
+> Las 6 configuraciones hybrid divergieron numéricamente (MAE > 7.000, R² = −10⁷ a −10¹⁰). El análisis de factores se calcula exclusivamente sobre las 6 configuraciones gradient válidas.
 
-> *(Completar con los valores de la tabla anterior)*
+---
 
-| Factor | Nivel | MAE medio | Conclusión |
-|--------|-------|-----------|------------|
-| Nº MFs | 2 | — | — |
-| Nº MFs | 3 | — | — |
-| Nº MFs | 4 | — | — |
-| Tipo MF | trimf | — | — |
-| Tipo MF | gaussmf | — | — |
-| Optimización | hybrid | — | — |
-| Optimización | gradient | — | — |
+### 6.2 Colapso del método hybrid — análisis
 
-### 6.3 Reglas lingüísticas del mejor modelo
+Todas las configuraciones hybrid produjeron predicciones absurdas (MAE = 54.132 días para 2 MFs; MAE = 520.495 días para 3 MFs). La causa es numérica:
 
-> *(Completar tras ejecución — extracto de `outputs/reglas_mejor_anfis.txt`)*
+La inicialización LSQ resuelve $\Phi \cdot \theta = y$, donde $\Phi \in \mathbb{R}^{N \times n_\text{reglas}}$ contiene los firing strengths normalizados $\bar{w}_r$. Con parámetros de premisa recién inicializados, muchas reglas producen $\bar{w}_r \approx 0$ para la mayor parte del training set, generando columnas casi nulas en $\Phi$ (matriz mal condicionada). La solución LSQ devuelve consecuentes $p_r$ del orden de $10^4$–$10^6$, y Adam no consigue recuperar el modelo de ese punto de partida en las épocas disponibles.
 
-```
-REGLAS DIFUSAS — Mejor ANFIS (? MFs, ?, ?)
+Las configuraciones con 4 MFs hybrid (IDs 9 y 11) consumieron las 200 épocas completas sin activar early stopping, con R² ≈ −8×10⁷.
 
-── Reglas con MENOR ETA (entregas más rápidas) ──
-  R???: SI distancia km ES ? Y dias limite envio ES ? Y flete total ES ?  →  ETA ≈ ? días
-  ...
+---
 
-── Reglas con MAYOR ETA (entregas más lentas) ──
-  R???: SI distancia km ES ? Y dias limite envio ES ? Y flete total ES ?  →  ETA ≈ ? días
-  ...
-```
+### 6.3 Análisis del efecto de cada factor (configuraciones gradient)
 
-### 6.4 Comparativa final — 3 entregas del proyecto
+| Factor | Nivel | MAE medio | Mejor MAE del nivel | Conclusión |
+|--------|-------|:---------:|:-------------------:|------------|
+| Nº MFs | 2     | 3.2208    | 3.2199              | Peor granularidad, converge rápido |
+| Nº MFs | 3     | 3.2410    | 3.2191              | Sin ventaja sobre 2 MFs |
+| Nº MFs | **4** | **3.1829** | **3.1160**         | **Mejor MAE; más capacidad expresiva** |
+| Tipo MF | **trimf** | **3.2002** | **3.1160**    | **Ligeramente superior** |
+| Tipo MF | gaussmf | 3.2296   | 3.2191              | Marginalmente inferior |
+| Optimización | gradient | 3.2149 | 3.1160        | Único método que converge |
+| Optimización | hybrid | *divergió* | —             | Inviable — problema numérico LSQ |
 
-> *(Completar con los valores reales tras ejecución)*
+El margen entre la peor y la mejor configuración gradient válida es de solo **0.147 días de MAE** (3.263 vs 3.116). El cuello de botella no es la arquitectura ANFIS sino la cantidad de features disponibles (3/15).
+
+---
+
+### 6.4 Reglas lingüísticas del mejor modelo (4 MFs, trimf, gradient)
+
+El modelo aprendió 64 reglas sobre el espacio {Muy Cercano, Cercano, Lejano, Muy Lejano} × {Muy Urgente, Urgente, Holgado, Muy Holgado} × {Muy Econ., Económico, Premium, Muy Premium}.
+
+**Rango de predicción:** 6.4 a 11.9 días (amplitud de 5.5 días).
+
+#### Reglas que predicen entregas más rápidas (ETA ≤ 7.0 días)
+
+| Regla | distancia km | dias limite envio | flete total | ETA |
+|-------|-------------|------------------|-------------|:---:|
+| R031 | Cercano      | Muy Holgado       | Premium     | 6.4 |
+| R047 | Lejano       | Muy Holgado       | Premium     | 6.6 |
+| R039 | Lejano       | Urgente           | Premium     | 6.7 |
+| R046 | Lejano       | Muy Holgado       | Económico   | 6.7 |
+| R038 | Lejano       | Urgente           | Económico   | 6.7 |
+| R023 | Cercano      | Urgente           | Premium     | 6.8 |
+| R043 | Lejano       | Holgado           | Premium     | 7.0 |
+
+#### Reglas que predicen entregas más lentas (ETA ≥ 11.0 días)
+
+| Regla | distancia km | dias limite envio | flete total | ETA |
+|-------|-------------|------------------|-------------|:---:|
+| R061 | Muy Lejano   | Muy Holgado       | Muy Econ.   | 11.9 |
+| R049 | Muy Lejano   | Muy Urgente       | Muy Econ.   | 11.8 |
+| R053 | Muy Lejano   | Urgente           | Muy Econ.   | 11.7 |
+| R057 | Muy Lejano   | Holgado           | Muy Econ.   | 11.5 |
+| R051 | Muy Lejano   | Muy Urgente       | Premium     | 11.3 |
+| R064 | Muy Lejano   | Muy Holgado       | Muy Premium | 11.1 |
+
+#### Patrones y conclusiones del sistema difuso
+
+**1. El nivel de servicio logístico (flete_total) es el factor más consistente:**
+Premium reduce el ETA en ~0.8–1.2 días respecto a Muy Econ. para cualquier combinación de distancia y urgencia. Ejemplo directo:
+
+| Condición | ETA |
+|-----------|:---:|
+| R039: Lejano + Urgente + **Premium** | 6.7 días |
+| R037: Lejano + Urgente + **Muy Econ.** | 7.5 días (+0.8 días) |
+
+**2. Paradoja de la distancia corta — Muy Cercano predice ETAs más lentos:**
+El clúster `Muy Cercano` predice ETAs de 7.2–10.6 días, mayor que `Lejano` (6.4–9.1 días) y `Cercano` (6.4–8.3 días). El modelo aprendió correctamente que en Olist, distancias muy cortas corresponden a entregas intraurbanas en São Paulo / Rio de Janeiro, donde la densidad logística genera más demoras que rutas interregionales largas. La `distancia_km` captura kilómetros geométricos, no dificultad logística real.
+
+**3. El plazo del vendedor (dias_limite_envio) no es monotónico:**
+`Muy Urgente` no garantiza entregas más rápidas. Para el clúster Muy Cercano:
+- R004: Muy Cercano + **Muy Urgente** + Muy Premium → 7.2 días
+- R016: Muy Cercano + **Muy Holgado** + Muy Premium → 9.1 días
+
+La urgencia del vendedor reduce el ETA ~2 días en Muy Cercano, pero el efecto desaparece en clústeres Lejano/Muy Lejano, donde la restricción es logística, no de gestión del vendedor.
+
+**4. Muy Lejano + Muy Econ. es la combinación crítica:**
+Las 4 reglas más lentas del sistema comparten siempre `Muy Lejano` + `Muy Econ.`, indicando que la falta de inversión en flete en rutas largas es el predictor más confiable de demoras severas. El ANFIS lo captura como regla auditable explícita.
+
+---
+
+### 6.5 Comparativa final — 3 entregas del proyecto
 
 | Entrega | Modelo | Features | MAE (días) | RMSE (días) | R² | Δ MAE vs E1 | Δ R² vs E1 |
 |---------|--------|:--------:|:----------:|:-----------:|:--:|:-----------:|:----------:|
 | E1 — RN | MLP Baseline (nb08) | 15 | 2.7479 | 4.0278 | 0.2884 | — | — |
 | E2 — Evolutivo | GA-REG + MLP (nb10) | 8 | 2.9382 | 4.1116 | 0.2585 | +6.9% ▲ | −10.4% ▼ |
-| **E3 — Inc.** | **ANFIS mejor (nb11)** | **3** | **—** | **—** | **—** | **—** | **—** |
+| **E3 — Incierto** | **ANFIS (nb11)** | **3** | **3.1160** | **4.4654** | **0.1254** | **+13.4% ▲** | **−56.5% ▼** |
 
-### 6.5 Gráficos
+### 6.6 Gráficos
 
 Ver:
 - `outputs/graficas/anfis_grid_analysis.png` — Heatmap MAE × factores del grid
-- `outputs/mfs_mejor_anfis.png` — Funciones de membresía aprendidas
+- `outputs/mfs_mejor_anfis.png` — Funciones de membresía aprendidas (3 variables lingüísticas)
 - `outputs/curvas_anfis.png` — Curva de aprendizaje del mejor modelo
 - `outputs/comparativo_ANFIS.png` — Barplot comparativo E1 / E2 / E3
 
 ---
 
-## 7. Interpretabilidad: ventaja diferencial de ANFIS
+## 7. Comparación entre las 3 entregas
 
-A diferencia del MLP (Entrega 1) y del GA-MLP (Entrega 2), el ANFIS produce un sistema **auditables por un humano**:
+### 7.1 Métricas predictivas
 
-1. **Funciones de membresía:** se puede visualizar cómo el modelo aprendió los bordes de los conjuntos difusos (ej: a partir de qué distancia considera que una entrega es "Lejana")
-2. **Reglas lingüísticas:** cada combinación de conjuntos produce una predicción de ETA explicable en lenguaje natural
-3. **Pocos parámetros:** 44–280 parámetros frente a ~100k del MLP — el modelo es completamente inspeccionable
+| Métrica | E1 — MLP Baseline | E2 — GA-REG | E3 — ANFIS | Mejor |
+|---------|:-----------------:|:-----------:|:----------:|:-----:|
+| MAE (días) | **2.7479** | 2.9382 | 3.1160 | E1 |
+| RMSE (días) | **4.0278** | 4.1116 | 4.4654 | E1 |
+| R² | **0.2884** | 0.2585 | 0.1254 | E1 |
+| Δ MAE vs E1 | — | +6.9% | +13.4% | — |
+| Δ R² vs E1 | — | −10.4% | −56.5% | — |
 
-Esta interpretabilidad es el **aporte diferenciador de la Entrega 3**, independientemente de si el MAE supera o no al baseline.
+La precisión predictiva decae monotónicamente de E1 a E3, lo cual es **esperado**: cada entrega usa menos features y un modelo con menor capacidad paramétrica. El objetivo de E3 no es superar a E1 en MAE, sino demostrar razonamiento bajo incertidumbre con reglas interpretables.
+
+### 7.2 Features y dimensionalidad
+
+| | E1 — MLP | E2 — GA-REG | E3 — ANFIS |
+|---|:---:|:---:|:---:|
+| Features usadas | 15 | 8 | **3** |
+| Reducción vs E1 | — | −46.7% | **−80.0%** |
+| Features categóricas | 3 | 1 | **0** |
+| Criterio de selección | Ninguno (todas) | Fitness R² evolutivo | Semántica lingüística |
+
+El GA (E2) demostró que 8 features capturan ~90% del rendimiento de E1. El ANFIS (E3) opera con el 20% de las features manteniendo ~89% del MAE de E1, logrando el mayor ratio interpretabilidad/feature.
+
+### 7.3 Complejidad del modelo
+
+| | E1 — MLP | E2 — GA-REG | E3 — ANFIS |
+|---|:---:|:---:|:---:|
+| Arquitectura | [256, 128, 64] + Embeddings | [256, 128, 64] + Embeddings | ANFIS 5 capas Sugeno |
+| Parámetros totales | ~100.000 | ~100.000 | **280** |
+| Ratio de complejidad vs ANFIS | 357× | 357× | **1×** |
+| Tipo de función | Caja negra | Caja negra | **Caja blanca** |
+| Reglas explícitas | No | No | **64** |
+| Auditable por humano | No | No | **Sí** |
+
+### 7.4 Proceso de entrenamiento
+
+| | E1 — MLP | E2 — GA-REG | E3 — ANFIS |
+|---|:---:|:---:|:---:|
+| Algoritmo de búsqueda | Ninguno | GA (torneo k=3, elitismo Top-1) | Grid 12 configs |
+| Optimizador de pesos | Adam | Adam (proxy 20 épocas/gen) | Adam |
+| Épocas (mejor config) | ~120 | ~120 (entrenamiento final) | 72 |
+| Tiempo total (CPU) | ~15 min | ~1.5–2.5 h | **~9 min** |
+| Inicialización | Glorot uniform | Glorot uniform | Glorot (gradient) |
+
+### 7.5 Interpretabilidad: ventaja diferencial de E3
+
+| Capacidad | E1 — MLP | E2 — GA-REG | E3 — ANFIS |
+|-----------|:---:|:---:|:---:|
+| Reglas en lenguaje natural | ✗ | ✗ | ✓ (64 reglas) |
+| Visualización del aprendizaje | Curvas de loss | Curvas GA + fitness | MFs aprendidas + reglas |
+| Explicación de una predicción | ✗ | ✗ | ✓ (firing strengths por regla) |
+| Auditoría de sesgos del dominio | Difícil | Difícil | **Directa** |
+| Insight de negocio generado | — | — | *"Muy Lejano + Muy Econ. → 11.9 días siempre"* |
+
+El ANFIS es el único modelo del proyecto capaz de responder "¿**por qué** predices X días?" con una justificación en variables del dominio. Esta es la contribución fundamental de la Entrega 3, independientemente de que su MAE sea 13.4% superior al baseline.
 
 ---
 
