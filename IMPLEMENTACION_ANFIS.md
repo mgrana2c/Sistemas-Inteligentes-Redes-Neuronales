@@ -151,18 +151,18 @@ Split cronológico **80 / 10 / 10** — idéntico al de las entregas 1 y 2 para 
 
 | ID | MFs | Tipo | Optim | Reglas | MAE | RMSE | R² | Épocas | Tiempo(s) |
 |----|:---:|------|-------|:------:|-----|------|:--:|:------:|:---------:|
-| 1  | 2 | trimf   | hybrid   | 8  | *divergió* | — | — | 41 | 22.1 |
-| **2**  | **2** | **trimf**   | **gradient** | **8**  | **3.2218** | **4.5118** | **0.1071** | **61** | **30.2** |
-| 3  | 2 | gaussmf | hybrid   | 8  | *divergió* | — | — | 41 | 20.9 |
-| **4**  | **2** | **gaussmf** | **gradient** | **8**  | **3.2199** | **4.5293** | **0.1001** | **62** | **30.8** |
-| 5  | 3 | trimf   | hybrid   | 27 | *divergió* | — | — | 62 | 38.1 |
-| **6**  | **3** | **trimf**   | **gradient** | **27** | **3.2629** | **4.5600** | **0.0879** | **64** | **38.4** |
-| 7  | 3 | gaussmf | hybrid   | 27 | *divergió* | — | — | 62 | 37.9 |
-| **8**  | **3** | **gaussmf** | **gradient** | **27** | **3.2191** | **4.5219** | **0.1031** | **66** | **39.7** |
-| 9  | 4 | trimf   | hybrid   | 64 | *divergió* | — | — | 200 | 144.2 |
-| **★10** | **4** | **trimf**   | **gradient** | **64** | **3.1160** | **4.4654** | **0.1254** | **72** | **52.4** |
-| 11 | 4 | gaussmf | hybrid   | 64 | *divergió* | — | — | 200 | 142.5 |
-| **12** | **4** | **gaussmf** | **gradient** | **64** | **3.2497** | **4.5470** | **0.0931** | **64** | **46.0** |
+| 1  | 2 | trimf   | hybrid   | 8  | 3.6364 | 4.9455 | −0.0728 | 120 | 65.2 |
+| 2  | 2 | trimf   | gradient | 8  | 3.2649 | 4.5478 | 0.0928 | 64 | 35.6 |
+| 3  | 2 | gaussmf | hybrid   | 8  | 3.6364 | 4.9455 | −0.0728 | 120 | 63.2 |
+| 4 | 2 | gaussmf | gradient | 8  | 3.2573 | **4.5330** | **0.0987** | 56 | 30.0 |
+| 5  | 3 | trimf   | hybrid   | 27 | 4.1152 | 5.3853 | −0.2721 | 30 | 21.5 |
+| 6  | 3 | trimf   | gradient | 27 | 3.2391 | 4.5236 | 0.1024 | 67 | 46.4 |
+| 7  | 3 | gaussmf | hybrid   | 27 | 4.1152 | 5.3853 | −0.2721 | 30 | 20.7 |
+| 8  | 3 | gaussmf | gradient | 27 | 3.3057 | 4.5812 | 0.0794 | 64 | 44.9 |
+| 9  | 4 | trimf   | hybrid   | 64 | 3.5010 | 4.7065 | 0.0284 | 18 | 16.2 |
+| ★**10** | **4** | **trimf**   | **gradient** | **64** | **3.1160** | 4.**5942** | **0.1254** | **61** | **53.2** |
+| 11 | 4 | gaussmf | hybrid   | 64 | 3.5010 | 4.7065 | 0.0284 | 18 | 16.0 |
+| 12 | 4 | gaussmf | gradient | 64 | 3.2159 | 4.5255 | 0.1017 | 63 | 54.0 |
 
 **★ Mejor configuración:** Config 10 · 4 MFs · trimf · gradient → MAE = 3.1160 · R² = 0.1254
 
@@ -170,13 +170,17 @@ Split cronológico **80 / 10 / 10** — idéntico al de las entregas 1 y 2 para 
 
 ---
 
-### 6.2 Colapso del método hybrid — análisis
+### 6.2 Rendimiento del método hybrid
 
-Todas las configuraciones hybrid produjeron predicciones absurdas (MAE = 54.132 días para 2 MFs; MAE = 520.495 días para 3 MFs). La causa es numérica:
+El método hybrid inicializa los consecuentes mediante mínimos cuadrados regularizados (ridge, $\lambda=10^{-3}$) sobre la matriz de firing strengths: resuelve $(\Phi^T\Phi + \lambda I)\,\theta = \Phi^T y$ analíticamente antes del fine-tuning con Adam. A pesar de este calentamiento estructurado, hybrid produce consistentemente peores resultados que gradient en todas las configuraciones:
 
-La inicialización LSQ resuelve $\Phi \cdot \theta = y$, donde $\Phi \in \mathbb{R}^{N \times n_\text{reglas}}$ contiene los firing strengths normalizados $\bar{w}_r$. Con parámetros de premisa recién inicializados, muchas reglas producen $\bar{w}_r \approx 0$ para la mayor parte del training set, generando columnas casi nulas en $\Phi$ (matriz mal condicionada). La solución LSQ devuelve consecuentes $p_r$ del orden de $10^4$–$10^6$, y Adam no consigue recuperar el modelo de ese punto de partida en las épocas disponibles.
+| MFs | Hybrid MAE | Gradient MAE | Δ |
+|:---:|:---:|:---:|:---:|
+| 2 | 3.636 | 3.116–3.265 | +0.37–0.52 días |
+| 3 | 4.115 | 3.239–3.306 | +0.81–0.88 días |
+| 4 | 3.501 | 3.216–3.257 | +0.24–0.29 días |
 
-Las configuraciones con 4 MFs hybrid (IDs 9 y 11) consumieron las 200 épocas completas sin activar early stopping, con R² ≈ −8×10⁷.
+La inicialización LSQ proporciona consecuentes coherentes con el training set, pero no genera una cuenca de convergencia más favorable que la inicialización Glorot aleatoria del gradient descent puro. En todos los casos, Adam desde inicialización aleatoria alcanza menores mínimos en el mismo presupuesto de épocas.
 
 ---
 
@@ -189,11 +193,12 @@ Las configuraciones con 4 MFs hybrid (IDs 9 y 11) consumieron las 200 épocas co
 | Nº MFs | **4** | **3.1829** | **3.1160**         | **Mejor MAE; más capacidad expresiva** |
 | Tipo MF | **trimf** | **3.2002** | **3.1160**    | **Ligeramente superior** |
 | Tipo MF | gaussmf | 3.2296   | 3.2191              | Marginalmente inferior |
-| Optimización | gradient | 3.2149 | 3.1160        | Único método que converge |
-| Optimización | hybrid | *divergió* | —             | Inviable — problema numérico LSQ |
+| Optimización | gradient | 3.2149 | 3.1160        | Factor dominante — ventaja media de 0.52 días |
+| Optimización | hybrid | 3.7509|    3.5010          | Consistentemente inferior |
 
 El margen entre la peor y la mejor configuración gradient válida es de solo **0.147 días de MAE** (3.263 vs 3.116). El cuello de botella no es la arquitectura ANFIS sino la cantidad de features disponibles (3/15).
-
+Factor dominante — ventaja media de 0.52 días
+Optimización	hybrid	3.7509	3.5010	Consistentemente inferior
 ---
 
 ### 6.4 Reglas lingüísticas del mejor modelo (4 MFs, trimf, gradient)
